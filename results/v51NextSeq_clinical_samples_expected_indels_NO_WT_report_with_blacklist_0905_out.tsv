@@ -1,0 +1,2 @@
+vaf_values	ng_range	score	w_comp	TP	FP	TN	FN	FN_u	FN_o	sens.	spec.	acc.	youden	prec.	recall	F1	FDR
+0.0_100.0 	4.0_12.0	0.9	0.5	121	272	8117	11	5	6	0.917	0.968	0.967	0.885	0.308	0.917	0.461	0.692
