@@ -43,10 +43,7 @@ following fields
 
 ## Aggregated results
 
-The directory results contains a list of files prefixed by
-```v51NextSeq_commercial_samples_expected_indels```
-
-These files contains an aggregated analysis of the calling performances of the
-indels pipeline on various settings defined in terms of expected VAF and
-DNA amount input.
-
+The directory `results` contains a list of files prefixed by
+`v51NextSeq_commercial` and `v51NextSeq_clinical` obtained by the script
+`BOVERI-568.sh` that shows the result on series of clinical and
+commercial samples dilutions.
