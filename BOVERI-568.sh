@@ -12,7 +12,7 @@ python bin/check_indels.py data/v51NextSeq_commercial_samples_expected_indels_NO
 echo "Commercial samples: non-wildtype samples"
 python bin/analyze_variants.py data/v51NextSeq_commercial_samples_expected_indels_NO_WT.tsv BOVERI-568_commercial-report.yaml
 echo "Commercial samples: wildtype samples"
-python bin/analyze_variants.py data/v51NextSeq_commercial_samples_expected_indels_WT.tsv BOVERI-568_commercial-report.yaml
+python bin/analyze_variants.py data/v51NextSeq_commercial_samples_expected_indels_WT.tsv BOVERI-568_commercial-WT-report.yaml
 echo "Commercial samples: non-wildtype Horizon samples"
 python bin/analyze_variants.py data/v51NextSeq_commercial_Horizon_samples_expected_indels_NO_WT.tsv BOVERI-568_commercial_Horizon-report.yaml
 echo "Commercial samples: non-wildtype SeraSeq samples"
@@ -32,7 +32,7 @@ python bin/check_indels.py data/v51NextSeq_clinical_samples_expected_indels_NO_W
 echo "Clinical samples: non-wildtype samples"
 python bin/analyze_variants_clinical.py data/v51NextSeq_clinical_samples_expected_indels_NO_WT.tsv BOVERI-568_clinical-report.yaml
 echo "Clinical samples: wildtype samples"
-python bin/analyze_variants_clinical.py data/v51NextSeq_clinical_samples_expected_indels_WT.tsv BOVERI-568_clinical-report.yaml
+python bin/analyze_variants_clinical.py data/v51NextSeq_clinical_samples_expected_indels_WT.tsv BOVERI-568_clinical-WT-report.yaml
 echo "Clinical samples: QMRS samples"
 python bin/extract_qmrs_indels.py data/BOVERI-568_NextSeq_clinical.csv 0.9 0.5 0.25
 
