@@ -44,7 +44,6 @@ OBSERVED = 'O'
 
 # Settings features
 W_COMP = 'w_comp'
-LLOD = 'llod'
 VAF_VAL = 'vaf_values'
 NG_RANGE = 'ng_range'
 
@@ -63,13 +62,11 @@ INDEL_FEATURES_VAF = INDEL_FEATURES_VAF_1 + INDEL_FEATURES_VAF_2
 
 # Paremeters keys for the YAML file
 GRID_KEY = 'penalty_grid'
-LLOD_KEY = 'llod_threshold'
 VAF_KEY = 'vaf_range'
 NG_KEY = 'ng_range'
 SCORES_KEY = 'scores'
 W_COMP_KEY = 'w_comp'
 BLACKLIST_KEY = 'blacklist_files'
-EXPECTED_INDELS_FILE = 'expected_indels_file'
 OUT_SUFFIX_KEY = 'out_suffix'
 MANIFEST_KEY = 'manifest_file'
 FILTER_ARTIFACTS_KEY = 'filter_artifacts'
@@ -117,8 +114,6 @@ def read_parameters(yaml_file_path):
                 ]
             elif key == BLACKLIST_KEY:
                 blacklist_files = value.split()
-            elif key == LLOD_KEY:
-                parameters[key] = float(value)
             elif key == OUT_SUFFIX_KEY:
                 parameters[key] = value
             elif key == MANIFEST_KEY:
@@ -323,37 +318,37 @@ def compare_indels(
                 index_dict[TN].append(index)
     return index_dict
 
-def compute_llod(expected_df, observed_df, indel_2_idx, score_max, threshold):
-    """
-    Compute the LLOD for a threshold X and confidence Y:
-    the minimum %VAF X such that at least Y% of the expected variants with
-    expected %VAF>=X are called
-    :param: expected_df, observed_df (DataFrames): expected and observed indels
-    :param: indel_2_idx (dict(tuple, dict([OBSERVED, EXPECTED], int))): index in
-    the expected and observed indels dataframe of an indel encoded as a tuple
-    :param: score_max (float): maximum scoe to call an indel
-    :param: threshold (float): threshold Y (see description above)
-    """
-    expected_df.sort_values(by=[EXP_VAF], inplace=True, ascending=False)
-    nb_called, nb_uncalled = defaultdict(int), defaultdict(int)
-    vaf_list = list(pd.unique(expected_df[EXP_VAF]))
-    for indel_tuple, index in indel_2_idx.items():
-        if EXPECTED in index.keys():
-            exp_vaf = expected_df.at[index[EXPECTED], EXP_VAF]
-            if OBSERVED in index.keys():
-                score = observed_df.at[index[OBSERVED], W_SCORE]
-                if score <= score_max: nb_called[exp_vaf] += 1
-                else: nb_uncalled[exp_vaf] += 1
-            else: nb_uncalled[exp_vaf] += 1
-    vaf_list.sort(reverse=True)
-    llod = 100.0
-    total_called, total_uncalled = 0, 0
-    for vaf in vaf_list:
-        total_called += nb_called[vaf]
-        total_uncalled += nb_uncalled[vaf]
-        if total_called / (total_called + total_uncalled) >= threshold:
-            llod = vaf
-    return llod
+# def compute_llod(expected_df, observed_df, indel_2_idx, score_max, threshold):
+#     """
+#     Compute the LLOD for a threshold X and confidence Y:
+#     the minimum %VAF X such that at least Y% of the expected variants with
+#     expected %VAF>=X are called
+#     :param: expected_df, observed_df (DataFrames): expected and observed indels
+#     :param: indel_2_idx (dict(tuple, dict([OBSERVED, EXPECTED], int))): index in
+#     the expected and observed indels dataframe of an indel encoded as a tuple
+#     :param: score_max (float): maximum scoe to call an indel
+#     :param: threshold (float): threshold Y (see description above)
+#     """
+#     expected_df.sort_values(by=[EXP_VAF], inplace=True, ascending=False)
+#     nb_called, nb_uncalled = defaultdict(int), defaultdict(int)
+#     vaf_list = list(pd.unique(expected_df[EXP_VAF]))
+#     for indel_tuple, index in indel_2_idx.items():
+#         if EXPECTED in index.keys():
+#             exp_vaf = expected_df.at[index[EXPECTED], EXP_VAF]
+#             if OBSERVED in index.keys():
+#                 score = observed_df.at[index[OBSERVED], W_SCORE]
+#                 if score <= score_max: nb_called[exp_vaf] += 1
+#                 else: nb_uncalled[exp_vaf] += 1
+#             else: nb_uncalled[exp_vaf] += 1
+#     vaf_list.sort(reverse=True)
+#     llod = 100.0
+#     total_called, total_uncalled = 0, 0
+#     for vaf in vaf_list:
+#         total_called += nb_called[vaf]
+#         total_uncalled += nb_uncalled[vaf]
+#         if total_called / (total_called + total_uncalled) >= threshold:
+#             llod = vaf
+#     return llod
 
 # ------------------------------------------------------------------------------
 STAT_PRECISION = 3
@@ -541,15 +536,10 @@ def process_indels(
         print(f"SCORE={score_max}\tW_COMP={w_comp}")
         # Reducing the weight of complexity penalty by factor w
         runs_indels_df = add_weighted_score(all_runs_indels_df, w_comp)
-        # llod = compute_llod(
-        #     all_expected_indels_df, runs_indels_df, indel_2_index,
-        #     score_max, llod_threshold
-        # )
-        # llod = 0.0
-        # print(f"\tLLOD={llod}")
         for (vaf_values, ng_range) in settings_grid:
             vaf_values_str = "{:<10}".format('_'.join([str(x) for x in vaf_values]))
             ng_range_str = f"{ng_range[0]}_{ng_range[1]}"
+            print(f"\tNG={ng_range_str}\tVAF={vaf_values_str}")
             out_prefix = [vaf_values_str, ng_range_str, score_max, w_comp]
             # Expected indels
             expected_indels_df = all_expected_indels_df.loc[

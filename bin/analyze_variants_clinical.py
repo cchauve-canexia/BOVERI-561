@@ -62,13 +62,11 @@ INDEL_FEATURES_VAF = INDEL_FEATURES_VAF_1 + INDEL_FEATURES_VAF_2
 
 # Paremeters keys for the YAML file
 GRID_KEY = 'penalty_grid'
-LLOD_KEY = 'llod_threshold'
 VAF_KEY = 'vaf_range'
 NG_KEY = 'ng_range'
 SCORES_KEY = 'scores'
 W_COMP_KEY = 'w_comp'
 BLACKLIST_KEY = 'blacklist_files'
-EXPECTED_INDELS_FILE = 'expected_indels_file'
 OUT_SUFFIX_KEY = 'out_suffix'
 MANIFEST_KEY = 'manifest_file'
 FILTER_ARTIFACTS_KEY = 'filter_artifacts'
@@ -116,8 +114,6 @@ def read_parameters(yaml_file_path):
                 ]
             elif key == BLACKLIST_KEY:
                 blacklist_files = value.split()
-            elif key == LLOD_KEY:
-                parameters[key] = float(value)
             elif key == OUT_SUFFIX_KEY:
                 parameters[key] = value
             elif key == MANIFEST_KEY:
@@ -504,7 +500,7 @@ def process_indels(
         # Reducing the weight of complexity penalty by factor w
         runs_indels_df = add_weighted_score(all_runs_indels_df, w_comp)
         for ng_range in ng_ranges:
-            print(f"\tNG={ng_range}")
+            ng_range_str = f"{ng_range[0]}_{ng_range[1]}"
             # Expected indels
             expected_indels_df = all_expected_indels_df.loc[
                 (all_expected_indels_df[NG].between(ng_range[0], ng_range[1]))
@@ -523,7 +519,7 @@ def process_indels(
             vaf_labels = ['_'.join([str(x) for x in v]) for v in vaf_ranges]
             for vaf_values in vaf_ranges:
                 vaf_label = '_'.join([str(x) for x in vaf_values])
-                print(f"\t\tVAF={vaf_label}")
+                print(f"\tNG={ng_range_str}\tVAF={vaf_label}")
                 ng_range_str = f"{ng_range[0]}_{ng_range[1]}"
                 out_prefix = [
                     "{:<10}".format(vaf_label), ng_range_str, score_max, w_comp
