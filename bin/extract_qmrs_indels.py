@@ -41,12 +41,13 @@ INDEL_FEATURES_VAF = INDEL_FEATURES_VAF_1 + INDEL_FEATURES_VAF_2
 # ------------------------------------------------------------------------------
 # Auxiliary functions
 
-def get_runs_qmrs_data(run_id_list):
+def get_runs_qmrs_data(run_id_list, qmrs_samples_list=None):
     """
     Returns the dataframes of observed indels for run in run_id_list and
     sample from sample_list from
     results files
     :param: run_id_list (list(str)): ID of the runs to consider
+    :param: qmrs_samples_list (list(str)): list of the IDs of QMRS samples
     :return DataFrame: dataframe of observed indels in QMRS samples
     """
     observed_indels_df_list = []
@@ -58,9 +59,14 @@ def get_runs_qmrs_data(run_id_list):
         observed_df_aux[SAMPLE] = observed_df_aux.apply(
             lambda row: row[SAMPLE].split('_S')[0], axis=1
         )
-        observed_indels_df = observed_df_aux.loc[
-            observed_df_aux[SAMPLE].str.startswith('QMRS')
-        ].round(3)
+        if qmrs_samples_list is None:
+            observed_indels_df = observed_df_aux.loc[
+                observed_df_aux[SAMPLE].str.startswith('QMRS')
+            ].round(3)
+        else:
+            observed_indels_df = observed_df_aux.loc[
+                observed_df_aux[SAMPLE].isin(qmrs_samples_list)
+            ].round(3)
         observed_indels_df_list.append(observed_indels_df)
         # Excluding indels in the blasklist
     qmrs_observed_indels_df = pd.concat(observed_indels_df_list)
@@ -111,11 +117,16 @@ if __name__ == "__main__":
     ARGS_SCORE = ['score_max', None, 'Score max']
     ARGS_W_COMP = ['w_comp', None, 'Complexity weight']
     ARGS_MIN_VAF = ['min_vaf', None, 'Minimum calling VAF']
+    ARGS_QMRS_LIST = ['-q', '--qmrs_samples', 'QMRS samples list']
     parser = argparse.ArgumentParser(description='Indels testing: report')
     parser.add_argument(ARGS_RUNS_FILE[0], type=str, help=ARGS_RUNS_FILE[2])
     parser.add_argument(ARGS_SCORE[0], type=float, help=ARGS_SCORE[2])
     parser.add_argument(ARGS_W_COMP[0], type=float, help=ARGS_W_COMP[2])
     parser.add_argument(ARGS_MIN_VAF[0], type=float, help=ARGS_MIN_VAF[2])
+    parser.add_argument(
+        ARGS_QMRS_LIST[0], ARGS_QMRS_LIST[1], type=str, help=ARGS_QMRS_LIST[2]
+    )
+
 
     args = parser.parse_args()
     # Reading parameters
@@ -123,9 +134,24 @@ if __name__ == "__main__":
     RUNS_LIST = []
     for run_data in RUNS_FILE:
         RUNS_LIST.append(run_data.rstrip().split(',')[1])
-    QMRS_INDELS_DF = add_weighted_score(get_runs_qmrs_data(RUNS_LIST), args.w_comp)
+    if args.qmrs_samples is not None:
+        QMRS_SAMPLES_LIST = [
+            x.rstrip() for x in open(args.qmrs_samples, 'r').readlines()
+        ]
+    else:
+        QMRS_SAMPLES_LIST = None
+    QMRS_INDELS_DF = add_weighted_score(
+        get_runs_qmrs_data(RUNS_LIST, qmrs_samples_list=QMRS_SAMPLES_LIST),
+        args.w_comp
+    )
     OUT_PREFIX = [args.score_max, args.w_comp]
-    OUT_FILE_NAME = args.runs_file.replace('data', 'results').replace('.csv', f"_QMRS_{args.score_max}_{args.w_comp}_{args.min_vaf}.tsv")
+    OUT_FILE_NAME = args.runs_file.replace(
+        'data', 'results'
+    ).replace(
+        '.csv', f"_QMRS_{args.score_max}_{args.w_comp}_{args.min_vaf}.tsv"
+    )
     OUT_FILE = open(OUT_FILE_NAME, 'w')
-    export_indels(QMRS_INDELS_DF, args.score_max, args.min_vaf, OUT_PREFIX, OUT_FILE)
+    export_indels(
+        QMRS_INDELS_DF, args.score_max, args.min_vaf, OUT_PREFIX, OUT_FILE
+    )
     OUT_FILE.close()
