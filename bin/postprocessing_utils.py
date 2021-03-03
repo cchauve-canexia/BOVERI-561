@@ -274,8 +274,11 @@ def compute_overlapping_score(df, overlaps_dict, weight):
                 info_split = info.split('=')
                 if info_split[0] == VAF:
                     vaf = float(info_split[1])
-            overlap_vaf = min(100.0, sum([x[1] for x in overlaps]))
-            score =  weight * min(1.0, overlap_vaf / vaf)
+            if vaf == 0:
+                score = 1.0
+            else:
+                overlap_vaf = min(100.0, sum([x[1] for x in overlaps]))
+                score =  weight * min(1.0, overlap_vaf / vaf)
             df.at[index, OVERLAP] = score
 
 def add_overlap_score(df, weight=1.0):
@@ -297,7 +300,10 @@ def compute_control_score(row, weight):
             closest_ctrl_vaf = float(info_split[1])
         if info_split[0] == VAF:
             current_vaf = float(info_split[1])
-    score = min(1.0, closest_ctrl_vaf / current_vaf)
+    if current_vaf == 0:
+        score = 1.0
+    else:
+        score = min(1.0, closest_ctrl_vaf / current_vaf)
     return weight * score
 
 def add_control_score(df, weight=1.0):
