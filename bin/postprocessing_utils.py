@@ -9,14 +9,6 @@ from vcf_utils import (
     SUPPORT,
     OVERLAP,
     CONTROL,
-)
-from bin.features_utils import (
-    MAX_COV,
-    SCORE,
-    SOURCE,
-    TOTAL_COV,
-)
-from vcf_utils import (
     VAF,
     CHR_COL,
     POS_COL,
@@ -25,6 +17,13 @@ from vcf_utils import (
     INFO_COL,
     ID_COL,
 )
+from bin.features_utils import (
+    MAX_COV,
+    SCORE,
+    SOURCE,
+    TOTAL_COV,
+)
+
 
 SCORE_DEFAULT = 0.0
 
