@@ -3,7 +3,8 @@ scores: 9 10 0.1
 w_comp: 5 6 0.1
 vaf_range: 0.1_0.125 0.25 0.375 0.5 0.7_0.75 1.0
 ng_range: 4.0_64.0 8.0_64.0
-blacklist_files: data/BOVERI-568_NextSeq_blacklist_2602.tsv data/BOVERI-568_NextSeq_blacklist_Horizon.tsv
+blacklist_files: data/BOVERI-568_NextSeq_blacklist_0303.tsv
+fingerprint_file: data/fingerprint_genes_map.tsv
 filter_artifacts: False
 manifest_file: data/CG001v5.1_Amplicon_Manifest_Panel5.1.12_20200911.tsv
 out_suffix: _report_with_blacklist_0905
