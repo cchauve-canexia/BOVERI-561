@@ -253,15 +253,15 @@ def filter_fingerprints(df, fingerprints_df):
     :param: fingerprints_df (DataFrame): dataframe of fingerprints characterized
     by columns AMP_CHR_COL, AMP_START_COL and AMP_END_COL
     """
-    index = []
+    index_list = []
     for _, fg in fingerprints_df.iterrows():
-        index += list(
+        index_list += list(
             df.loc[
                 (df[CHR]==fg[AMP_CHR_COL]) &
                 (df[POS].between(fg[AMP_START_COL], fg[AMP_END_COL]))
             ].index
         )
-    return df.loc[~df.index.isin(index)]
+    return df.drop(index=index_list)
 
 def get_runs_data(
     run_id_list,
@@ -304,6 +304,7 @@ def get_runs_data(
     observed_indels_df_1 = filter_blacklist(
         all_observed_indels_df, blacklist, filter_artifacts
     )
+    observed_indels_df_1.reset_index(drop=True, inplace=True)
     if fingerprints_df is not None:
         observed_indels_df = filter_fingerprints(
             observed_indels_df_1, fingerprints_df

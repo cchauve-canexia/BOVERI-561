@@ -47,6 +47,9 @@ INDEL_FEATURES_VAF = INDEL_FEATURES_VAF_1 + INDEL_FEATURES_VAF_2
 # ------------------------------------------------------------------------------
 # Auxiliary functions
 
+def find_indel(df, run, sample, chr, pos, ref, alt):
+    return list(df.loc[(df[RUN_ID]==run) & (df[SAMPLE]==sample) & (df[CHR]==chr) & (df[POS]==pos) & (df[REF]==ref) & (df[ALT]==alt)].index)
+
 def get_runs_qmrs_data(
     run_id_list,
     qmrs_samples_list=None,
@@ -86,9 +89,11 @@ def get_runs_qmrs_data(
         observed_indels_df_list.append(observed_indels_df)
         # Excluding indels in the blasklist
     qmrs_all_observed_indels_df = pd.concat(observed_indels_df_list)
+    # qmrs_all_observed_indels_df[POS] = qmrs_all_observed_indels_df[POS].astype(int)
     qmrs_observed_indels_df_1 = filter_blacklist(
         qmrs_all_observed_indels_df, blacklist, False
     )
+    qmrs_observed_indels_df_1.reset_index(drop=True, inplace=True)
     if fingerprints_df is not None:
         qmrs_observed_indels_df = filter_fingerprints(
             qmrs_observed_indels_df_1, fingerprints_df
@@ -98,7 +103,9 @@ def get_runs_qmrs_data(
     qmrs_observed_indels_df.reset_index(drop=True, inplace=True)
     return qmrs_observed_indels_df
 
-def export_indels(qmrs_observed_indels_df, score_max, min_vaf, out_prefix, out_file):
+def export_indels(
+    qmrs_observed_indels_df, score_max, min_vaf, out_prefix, out_file
+):
     # Output of FP indels
     header_1 = [SCORE, W_COMP]
     header_4 = [RUN_ID, SAMPLE, CHR, POS, REF, ALT, VAF]
