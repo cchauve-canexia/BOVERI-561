@@ -18,7 +18,10 @@ python bin/analyze_variants.py data/v51NextSeq_commercial_Horizon_samples_expect
 echo "Commercial samples: non-wildtype SeraSeq samples"
 python bin/analyze_variants.py data/v51NextSeq_commercial_SeraSeq_samples_expected_indels_NO_WT.tsv BOVERI-568_commercial_SeraSeq-report.yaml
 echo "Commercial samples: QMRS samples"
-python bin/extract_qmrs_indels.py data/BOVERI-568_NextSeq_commercial.csv 0.9 0.5 0.25
+python bin/extract_qmrs_indels.py data/BOVERI-568_NextSeq_commercial.csv 0.9 0.5 0.25 \
+  -f data/fingerprint_genes_map.tsv \
+  -m data/CG001v5.1_Amplicon_Manifest_Panel5.1.12_20200911.tsv \
+  -b data/BOVERI-568_NextSeq_blacklist_0303.tsv
 
 # echo "Extract results for clinical samples"
 # python bin/extract_files.py data/BOVERI-568_clinical.csv
@@ -34,7 +37,10 @@ python bin/analyze_variants_clinical.py data/v51NextSeq_clinical_samples_expecte
 echo "Clinical samples: wildtype samples"
 python bin/analyze_variants_clinical.py data/v51NextSeq_clinical_samples_expected_indels_WT.tsv BOVERI-568_clinical-WT-report.yaml
 echo "Clinical samples: QMRS samples"
-python bin/extract_qmrs_indels.py data/BOVERI-568_NextSeq_clinical.csv 0.9 0.5 0.25
+python bin/extract_qmrs_indels.py data/BOVERI-568_NextSeq_clinical.csv 0.9 0.5 0.25 \
+  -f data/fingerprint_genes_map.tsv \
+  -m data/CG001v5.1_Amplicon_Manifest_Panel5.1.12_20200911.tsv \
+  -b data/BOVERI-568_NextSeq_blacklist_0303.tsv
 
 echo "Commercial samples: thresholds/parameters grid exploration"
 python bin/analyze_variants.py data/v51NextSeq_commercial_samples_expected_indels_NO_WT.tsv BOVERI-568_commercial-report-grid.yaml

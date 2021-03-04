@@ -10,22 +10,28 @@ import os
 import pandas as pd
 import yaml
 
-# Dataframes column keys: should be imported from vcf_utils.py
-SAMPLE = 'sample'
-RUN_ID = 'run_id'
-VAF = 'vaf'
-CHR = 'chr'
-POS = 'pos'
-REF = 'ref'
-ALT = 'alt'
-NG = 'ng_est'
-W_SCORE = 'w_score'
-W_COMP = 'w_comp'
-SCORE = 'score'
-COMPLEXITY = 'complexity'
-SUPPORT = 'support'
-OVERLAP = 'overlap'
-CONTROL = 'control'
+from analyze_variants_utils import (
+    SAMPLE,
+    RUN_ID,
+    VAF,
+    CHR,
+    POS,
+    REF,
+    ALT,
+    NG,
+    W_SCORE,
+    W_COMP,
+    SCORE,
+    COMPLEXITY,
+    SUPPORT,
+    OVERLAP,
+    CONTROL,
+    add_weighted_score,
+    augment_fingerprints,
+    filter_blacklist,
+    filter_fingerprints,
+    read_blacklist,
+)
 
 # ------------------------------------------------------------------------------
 # Global input
@@ -41,13 +47,23 @@ INDEL_FEATURES_VAF = INDEL_FEATURES_VAF_1 + INDEL_FEATURES_VAF_2
 # ------------------------------------------------------------------------------
 # Auxiliary functions
 
-def get_runs_qmrs_data(run_id_list, qmrs_samples_list=None):
+def get_runs_qmrs_data(
+    run_id_list,
+    qmrs_samples_list=None,
+    blacklist=[],
+    fingerprints_df=None
+):
     """
     Returns the dataframes of observed indels for run in run_id_list and
     sample from sample_list from
     results files
     :param: run_id_list (list(str)): ID of the runs to consider
     :param: qmrs_samples_list (list(str)): list of the IDs of QMRS samples
+    :param: blacklist (list(dict(str, str, int, str, str, str)): indexed by
+    CHR, POS, REF, ALT, BL_ORIGIN
+    :param: filter_artifacts (bool): if True filter artifacts from blakclist
+    :param: fingerprints_df (DataFrame): dataframe of fingerprints characterized
+    by columns AMP_CHR_COL, AMP_START_COL and AMP_END_COL
     :return DataFrame: dataframe of observed indels in QMRS samples
     """
     observed_indels_df_list = []
@@ -69,26 +85,18 @@ def get_runs_qmrs_data(run_id_list, qmrs_samples_list=None):
             ].round(3)
         observed_indels_df_list.append(observed_indels_df)
         # Excluding indels in the blasklist
-    qmrs_observed_indels_df = pd.concat(observed_indels_df_list)
+    qmrs_all_observed_indels_df = pd.concat(observed_indels_df_list)
+    qmrs_observed_indels_df_1 = filter_blacklist(
+        qmrs_all_observed_indels_df, blacklist, False
+    )
+    if fingerprints_df is not None:
+        qmrs_observed_indels_df = filter_fingerprints(
+            qmrs_observed_indels_df_1, fingerprints_df
+        )
+    else:
+        qmrs_observed_indels_df = qmrs_observed_indels_df_1
     qmrs_observed_indels_df.reset_index(drop=True, inplace=True)
     return qmrs_observed_indels_df
-
-def add_weighted_score(indels_df, weight):
-    """
-    Add a weighted score column to an observed indels dataframe
-    """
-    result_indels_df = indels_df.copy()
-    # Reducing the weight of complexity penalty by factor w
-    result_indels_df[W_SCORE] = result_indels_df.apply(
-        lambda row: (
-            weight * row[COMPLEXITY] +
-            row[SUPPORT] +
-            row[OVERLAP] +
-            row[CONTROL]
-        ),
-        axis=1
-    )
-    return result_indels_df
 
 def export_indels(qmrs_observed_indels_df, score_max, min_vaf, out_prefix, out_file):
     # Output of FP indels
@@ -117,7 +125,10 @@ if __name__ == "__main__":
     ARGS_SCORE = ['score_max', None, 'Score max']
     ARGS_W_COMP = ['w_comp', None, 'Complexity weight']
     ARGS_MIN_VAF = ['min_vaf', None, 'Minimum calling VAF']
-    ARGS_QMRS_LIST = ['-q', '--qmrs_samples', 'QMRS samples list']
+    ARGS_QMRS_LIST = ['-q', '--qmrs_samples', 'QMRS samples list file']
+    ARGS_BLACKLIST = ['-b', '--blacklist', 'Blacklist file']
+    ARGS_FINGERPRINTS = ['-f', '--fingerprints', 'Fingreprint genes file']
+    ARGS_MANIFEST = ['-m', '--manifest', 'Manifest file']
     parser = argparse.ArgumentParser(description='Indels testing: report')
     parser.add_argument(ARGS_RUNS_FILE[0], type=str, help=ARGS_RUNS_FILE[2])
     parser.add_argument(ARGS_SCORE[0], type=float, help=ARGS_SCORE[2])
@@ -126,8 +137,16 @@ if __name__ == "__main__":
     parser.add_argument(
         ARGS_QMRS_LIST[0], ARGS_QMRS_LIST[1], type=str, help=ARGS_QMRS_LIST[2]
     )
-
-
+    parser.add_argument(
+        ARGS_BLACKLIST[0], ARGS_BLACKLIST[1], type=str, help=ARGS_BLACKLIST[2]
+    )
+    parser.add_argument(
+        ARGS_FINGERPRINTS[0], ARGS_FINGERPRINTS[1], type=str,
+        help=ARGS_FINGERPRINTS[2]
+    )
+    parser.add_argument(
+        ARGS_MANIFEST[0], ARGS_MANIFEST[1], type=str, help=ARGS_MANIFEST[2]
+    )
     args = parser.parse_args()
     # Reading parameters
     RUNS_FILE = open(args.runs_file, 'r').readlines()
@@ -140,8 +159,21 @@ if __name__ == "__main__":
         ]
     else:
         QMRS_SAMPLES_LIST = None
+    MANIFEST_DF = pd.read_csv(args.manifest, sep='\t')
+    FINGERPRINTS_DF = augment_fingerprints(
+        pd.read_csv(args.fingerprints, sep='\t'), MANIFEST_DF
+    )
+    if args.blacklist is not None:
+        BLACKLIST = read_blacklist(args.blacklist, MANIFEST_DF)
+    else:
+        BLACKLIST = []
     QMRS_INDELS_DF = add_weighted_score(
-        get_runs_qmrs_data(RUNS_LIST, qmrs_samples_list=QMRS_SAMPLES_LIST),
+        get_runs_qmrs_data(
+            RUNS_LIST,
+            qmrs_samples_list=QMRS_SAMPLES_LIST,
+            blacklist=BLACKLIST,
+            fingerprints_df=FINGERPRINTS_DF
+            ),
         args.w_comp
     )
     OUT_PREFIX = [args.score_max, args.w_comp]

@@ -134,25 +134,24 @@ def read_parameters(yaml_file_path):
         ]
     return parameters
 
-def augment_fingerprints(parameters):
+def augment_fingerprints(fingerprints_df, manifest_df):
     """
     Associate to each fingerprint its coordinates
     """
-    fingerprints_df = parameters[FINGERPRINT_KEY].copy()
-    fingerprints_df[AMP_CHR_COL] = ''
-    fingerprints_df[AMP_START_COL] = 0
-    fingerprints_df[AMP_END_COL] = 0
-    manifest_df = parameters[MANIFEST_KEY]
+    fg_df = fingerprints_df.copy()
+    fg_df[AMP_CHR_COL] = ''
+    fg_df[AMP_START_COL] = 0
+    fg_df[AMP_END_COL] = 0
     for index, fg in fingerprints_df.iterrows():
         amplicon_name = fg[AMP_NAME_COL]
         amplicon_index = list(
             manifest_df.loc[manifest_df[AMP_NAME_COL]==amplicon_name].index
         )[0]
         amplicon = manifest_df.loc[[amplicon_index]]
-        fingerprints_df.at[index, AMP_START_COL] = int(amplicon[AMP_START_COL])
-        fingerprints_df.at[index, AMP_END_COL] = int(amplicon[AMP_END_COL])
-        fingerprints_df.at[index, AMP_CHR_COL] = amplicon[AMP_CHR_COL]
-    parameters[FINGERPRINT_KEY] = fingerprints_df
+        fg_df.at[index, AMP_START_COL] = int(amplicon.at[amplicon_index, AMP_START_COL])
+        fg_df.at[index, AMP_END_COL] = int(amplicon.at[amplicon_index, AMP_END_COL])
+        fg_df.at[index, AMP_CHR_COL] = amplicon.at[amplicon_index, AMP_CHR_COL]
+    return fg_df
 
 def coord_to_del(chr, start, end, manifest_df):
     """
@@ -244,7 +243,7 @@ def filter_blacklist(df, blacklist, filter_artifacts):
                 (df[ALT]==indel[ALT])
             ].index
         )
-    return  df.loc[~df.index.isin(index)]
+    return df.loc[~df.index.isin(index)]
 
 def filter_fingerprints(df, fingerprints_df):
     """
@@ -258,15 +257,17 @@ def filter_fingerprints(df, fingerprints_df):
     for _, fg in fingerprints_df.iterrows():
         index += list(
             df.loc[
-                (df[CHR]==fg[CHR_CHR_COL]) &
+                (df[CHR]==fg[AMP_CHR_COL]) &
                 (df[POS].between(fg[AMP_START_COL], fg[AMP_END_COL]))
             ].index
         )
-    return  df.loc[~df.index.isin(index)]
+    return df.loc[~df.index.isin(index)]
 
 def get_runs_data(
-    run_id_list, samples_list,
-    blacklist=[], filter_artifacts=False,
+    run_id_list,
+    samples_list,
+    blacklist=[],
+    filter_artifacts=False,
     fingerprints_df=None
 ):
     """
@@ -304,10 +305,11 @@ def get_runs_data(
         all_observed_indels_df, blacklist, filter_artifacts
     )
     if fingerprints_df is not None:
-        observed_indels_df = filter_blacklist(
-            all_observed_indels_df_1, fingerprints_df
+        observed_indels_df = filter_fingerprints(
+            observed_indels_df_1, fingerprints_df
         )
     else:
+        print('No fingerprint filtering')
         observed_indels_df = observed_indels_df_1
     observed_indels_df.reset_index(drop=True, inplace=True)
     return observed_indels_df

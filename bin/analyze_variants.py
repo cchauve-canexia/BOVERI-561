@@ -15,6 +15,8 @@ from analyze_variants_utils import (
     NG_KEY,
     BLACKLIST_KEY,
     FILTER_ARTIFACTS_KEY,
+    FINGERPRINT_KEY,
+    MANIFEST_KEY,
     EXPECTED,
     OBSERVED,
     CHR,
@@ -194,10 +196,10 @@ if __name__ == "__main__":
     VAF_RANGES = PARAMETERS[VAF_KEY]
     NG_RANGES = PARAMETERS[NG_KEY]
     SETTINGS_GRID = [(vaf, ng) for vaf in VAF_RANGES for ng in NG_RANGES]
-    BLACKLIST = PARAMETERS[BLACKLIST_KEY]
-    FILTER_ARTIFACTS = PARAMETERS[FILTER_ARTIFACTS_KEY]
-    augment_fingerprints(PARAMETERS)
-    # LLOD_THRESHOLD = PARAMETERS[LLOD_KEY]
+    PARAMETERS[FINGERPRINT_KEY] = augment_fingerprints(
+        PARAMETERS[FINGERPRINT_KEY],
+        PARAMETERS[MANIFEST_KEY]
+    )
     # Creating and opening output files
     OUT_FILES = open_out_files(PARAMETERS, args.exp_indels_file)
     # Reading all expected indels
@@ -212,10 +214,12 @@ if __name__ == "__main__":
     EXPECTED_INDELS_DF = ALL_EXPECTED_INDELS_DF.loc[
         ALL_EXPECTED_INDELS_DF[SAMPLE].isin(SAMPLES_LIST)
     ]
-    assert check_blacklist(EXPECTED_INDELS_DF, BLACKLIST)
+    assert check_blacklist(EXPECTED_INDELS_DF, PARAMETERS[BLACKLIST_KEY])
     RUNS_INDELS_DF = get_runs_data(
         RUNS_LIST, SAMPLES_LIST,
-        blacklist=BLACKLIST, filter_artifacts=FILTER_ARTIFACTS
+        blacklist=PARAMETERS[BLACKLIST_KEY],
+        filter_artifacts=PARAMETERS[FILTER_ARTIFACTS_KEY],
+        fingerprints_df=PARAMETERS[FINGERPRINT_KEY]
     )
     # Processing indels for all parameters and threshold settings
     print('Processing indels')
