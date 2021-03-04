@@ -6,8 +6,8 @@
 
 echo "Commercial samples: stats on blacklist"
 python bin/check_indels.py data/v51NextSeq_commercial_samples_expected_indels_NO_WT.tsv \
-  data/BOVERI-568_NextSeq_blacklist_2602.tsv BOVERI-568_commercial-report.yaml \
-  > data/BOVERI-568_NextSeq_blacklist_2602_commercial_stats.tsv
+  data/BOVERI-568_NextSeq_blacklist_0303.tsv BOVERI-568_commercial-report.yaml \
+  > data/BOVERI-568_NextSeq_blacklist_0303_commercial_stats.tsv
 
 echo "Commercial samples: non-wildtype samples"
 python bin/analyze_variants.py data/v51NextSeq_commercial_samples_expected_indels_NO_WT.tsv BOVERI-568_commercial-report.yaml
@@ -29,8 +29,8 @@ python bin/extract_qmrs_indels.py data/BOVERI-568_NextSeq_commercial.csv 0.9 0.5
 
 echo "Clinical samples: stats on blacklist"
 python bin/check_indels.py data/v51NextSeq_clinical_samples_expected_indels_NO_WT.tsv \
-  data/BOVERI-568_NextSeq_blacklist_2602.tsv BOVERI-568_clinical-report.yaml \
-  > data/BOVERI-568_NextSeq_blacklist_2602_clinical_stats.tsv
+  data/BOVERI-568_NextSeq_blacklist_0303.tsv BOVERI-568_clinical-report.yaml \
+  > data/BOVERI-568_NextSeq_blacklist_0303_clinical_stats.tsv
 
 echo "Clinical samples: non-wildtype samples"
 python bin/analyze_variants_clinical.py data/v51NextSeq_clinical_samples_expected_indels_NO_WT.tsv BOVERI-568_clinical-report.yaml
