@@ -1,0 +1,8 @@
+id	total	count	proportion	mean_vaf	origin	reference
+chr3:178936116:GT:C	nan	nan	nan	nan	blacklisted	https://www.ncbi.nlm.nih.gov/snp/rs58777779,https://www.ncbi.nlm.nih.gov/clinvar/variation/446487/
+chr19:4117563:GCTT:G	nan	nan	nan	nan	blacklisted	nan
+chr15:90631917:TC:T	nan	nan	nan	nan	blacklisted	nan
+chr12:25398297:C:CCG	nan	nan	nan	nan	blacklisted	nan
+chr12:25380252:TC:T	nan	nan	nan	nan	blacklisted	nan
+chr1:156846307:GC:G	nan	nan	nan	nan	blacklisted	nan
+chr10:89717769:TA:T	nan	nan	nan	nan	blacklisted	https://www.ncbi.nlm.nih.gov/clinvar/variation/92828/
