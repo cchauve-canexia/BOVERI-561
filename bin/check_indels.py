@@ -10,42 +10,33 @@ import pandas as pd
 import yaml
 
 # Dataframes column keys: should be imported from vcf_utils.py
-SAMPLE = 'sample'
-RUN_ID = 'run_id'
-VAF = 'vaf'
-EXP_VAF = 'exp_vaf'
-CHR = 'chr'
-POS = 'pos'
-REF = 'ref'
-ALT = 'alt'
-NG = 'ng_est'
-W_SCORE = 'w_score'
-SCORE = 'score'
-COMPLEXITY = 'complexity'
-SUPPORT = 'support'
-OVERLAP = 'overlap'
-CONTROL = 'control'
-
-BL_ALIQUOT = 'aliquot_id'
-BL_ID = 'id'
-
-# ------------------------------------------------------------------------------
-# Global input
-
-## Analysis: Features defining an indel
-## Basic indel features
-INDEL_FEATURES = [SAMPLE, CHR, POS, REF, ALT]
-# Expected indels features
-INDEL_FEATURES_EXPVAF = INDEL_FEATURES + [EXP_VAF]
-# Detected indels features
-INDEL_FEATURES_VAF_1 = INDEL_FEATURES + [VAF]
-INDEL_FEATURES_VAF_2 = [W_SCORE, SCORE, COMPLEXITY, SUPPORT, OVERLAP, CONTROL]
-INDEL_FEATURES_VAF = INDEL_FEATURES_VAF_1 + INDEL_FEATURES_VAF_2
+from analyze_variants_utils import (
+    MANIFEST_KEY,
+    SAMPLE,
+    RUN_ID,
+    VAF,
+    EXP_VAF,
+    CHR,
+    POS,
+    REF,
+    ALT,
+    NG,
+    W_SCORE,
+    SCORE,
+    COMPLEXITY,
+    SUPPORT,
+    OVERLAP,
+    CONTROL,
+    INDEL_FEATURES,
+    INDEL_FEATURES_EXPVAF,
+    INDEL_FEATURES_VAF_1,
+    INDEL_FEATURES_VAF_2,
+    INDEL_FEATURES_VAF,
+)
 
 # Paremeters keys for the YAML file
-MANIFEST_KEY = 'manifest_file'
+M = 'manifest_file'
 # Used columns of blacklist files
-ALIQUOT = 'aliquot_id'
 INDEL_ID = 'id'
 
 # ------------------------------------------------------------------------------
@@ -81,13 +72,13 @@ def coord_to_del(chr, start, end, manifest_df):
 
 def read_indels(indels_tsv_file, manifest_df, sep='\t'):
     """
-    Extracts from a CSV file a list of (aliquot, chr, pos, ref, alt) describing
+    Extracts from a CSV file a list of (chr, pos, ref, alt) describing
     indels
     :param: blacklist_csv_file (str): path to a CSV file describing indels in
     the format chr,pos,ref,alt
     :param: manifest_df (DataFrame): amplicon manifest
     :param: sep (str): separator in CSV file
-    :return: list(dict(str, str, int, str, str)): indexed by ALIQUOT,
+    :return: list(dict(str, str, int, str, str)): indexed by
     CHR, POS, REF, ALT
     """
     indels = []
@@ -95,7 +86,6 @@ def read_indels(indels_tsv_file, manifest_df, sep='\t'):
     for _, row in indels_df.iterrows():
         indel_str = row[INDEL].split(':')
         indel = {
-            ALIQUOT: row[ALIQUOT],
             CHR: indel_str[0]
         }
         if len(indel_str) == 4:
@@ -177,14 +167,12 @@ if __name__ == "__main__":
     for _, indel_row in CHECKED_INDELS_DF.iterrows():
         indel_1 = indel_row[INDEL_ID].split(':')
         indel = {
-            ALIQUOT: indel_row[ALIQUOT],
             CHR: indel_1[0],
             POS: int(indel_1[1]),
             REF: indel_1[2],
             ALT: indel_1[3]
         }
         indel_df = RUNS_INDELS_DF.loc[
-            (RUNS_INDELS_DF[SAMPLE].str.startswith(indel[ALIQUOT])) &
             (RUNS_INDELS_DF[CHR]==indel[CHR]) &
             (RUNS_INDELS_DF[POS]==indel[POS]) &
             (RUNS_INDELS_DF[REF]==indel[REF]) &
