@@ -47,3 +47,19 @@ The directory `results` contains a list of files prefixed by
 `v51NextSeq_commercial` and `v51NextSeq_clinical` obtained by the script
 `BOVERI-568.sh` that shows the result on series of clinical and
 commercial samples dilutions.
+
+The file `results/v51NextSeq_commercial_samples_expected_indels_NO_WT_report_with_blacklist_grid_out.png`
+shows the sensitivity, specificity and PPV for the grid of score explored, for
+each setting composed of an expected VAF range and DNA input range. The x-axis
+represents the combination (X, W) where W is the weight of the sequence
+complexity penalty and X the maximum score to call an indel: the pair (X, W) is
+represented by the point 10X+W, which explains that on integer coordinates X=i,
+there are two data points, (X=i, W=0) and (X=i-1, W=1.0).
+
+The file `results/v51NextSeq_commercial_samples_expected_indels_NO_WT_report_with_blacklist_grid_out_ROC.png`
+shows a ROC curve per setting built on the sensitivity and specificity of
+the explored grid of settings.
+
+The file `results/v51NextSeq_commercial_samples_expected_indels_NO_WT_report_with_blacklist_grid_vaf.png`
+shows a scatter plot of the expected VAF versus the observed VAF for TP and
+observed FN.
