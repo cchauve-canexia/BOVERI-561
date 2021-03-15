@@ -58,6 +58,10 @@ def compare_indels(
     Computes the index of true positive, false positive, false negative
     :param: expected_df (DataFrame): dataframe of all expected indels
     :param: observed_df (DataFrame): dataframe of all dected indels
+    :param: indel_2_idx (dict): dictionary indexed by the tuple representation
+    of indels and linking an indel to a dictionary indexed by EXPECTED and
+    OBSERVED each linking to a list of index in expected_df and observed_df
+    corresponding to entries in these dataframes for the indel
     :param: score_max (float): max penalty to call a detected indel
     :param: lpi (dict(str, float)): dictionary of lower prediction interval
     value for each sample
@@ -130,6 +134,11 @@ def process_indels(
     """
     # Dictionary of indels to index in both dataframes
     print('Creating indels index')
+    # indel_2_index (dict): dictionary indexed by the tuple representation
+    # of indels and linking an indel to a dictionary indexed by EXPECTED and
+    # OBSERVED each linking to a list of index in all_expected_df and
+    # all_runs_indels_df corresponding to entries in these dataframes for the
+    # indel
     indel_2_index = defaultdict(dict)
     for index, row in all_expected_indels_df.iterrows():
         indel_2_index[row_to_tuple(row)][EXPECTED] = index
